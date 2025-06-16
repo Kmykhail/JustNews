@@ -1,6 +1,6 @@
 package com.kote.justnews.ui.screens
 
-import android.os.Build
+import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,15 +25,10 @@ private fun WebViewExample(url: String) {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
 
-                        // Видалити небажані елементи через JavaScript
                         view?.evaluateJavascript(
                             """
-                            // Приклад для Wired.com (може змінюватись)
                             document.querySelector('header').remove();
                             document.querySelector('footer').remove();
-                            document.querySelector('.StandardNavigationHeadLineBlock').remove();
-
-                            // Зробити контент на весь екран
                             document.body.style.margin = '0';
                             document.body.style.padding = '0';
                             """.trimIndent(),

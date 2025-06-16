@@ -1,40 +1,103 @@
-package com.kote.justnews.di
+@file:Suppress("DEPRECATION")
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
-import com.kote.justnews.data.api.NewsApiService
+package com.kote.justnews.di
+import android.app.Application
+import android.content.Context
+import com.kote.justnews.data.local.LocalNewsDataSource
+import com.kote.justnews.data.local.LocalNewsDataSourceImpl
+import com.kote.justnews.data.remote.RssApiService
+import com.kote.justnews.data.local.NewsCacheDao
+import com.kote.justnews.data.local.NewsCacheDatabase
+import com.kote.justnews.data.remote.GNewsApiService
+import com.kote.justnews.data.remote.RemoteNewsDataSource
+import com.kote.justnews.data.remote.RemoteNewsDataSourceImpl
 import com.kote.justnews.data.repository.NewsRepositoryImpl
 import com.kote.justnews.domain.repository.NewsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import org.simpleframework.xml.convert.AnnotationStrategy
+import org.simpleframework.xml.core.Persister
 import retrofit2.Retrofit
-import retrofit2.create
+import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.converter.simplexml.SimpleXmlConverterFactory
+import javax.inject.Named
 
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
     @Provides
-    fun provideRetrofit() : Retrofit {
-        val netJson = Json {ignoreUnknownKeys = true}
+    fun provideDatabase(app: Application) : NewsCacheDatabase {
+        return NewsCacheDatabase.getDataBase(app.applicationContext)
+    }
+
+    @Provides
+    fun provideDao(database: NewsCacheDatabase) : NewsCacheDao {
+        return database.dao()
+    }
+
+    @Provides
+    @Named("googleNewsRetrofit")
+    fun provideGoogleNewsRetrofit() : Retrofit {
+        val xmlConverterFactory = SimpleXmlConverterFactory.createNonStrict(
+            Persister(AnnotationStrategy())
+        )
         return Retrofit.Builder()
-            .baseUrl("https://newsapi.org/v2/")
-            .addConverterFactory(
-                netJson.asConverterFactory("application/json".toMediaType())
+            .baseUrl("https://news.google.com/")
+            .addConverterFactory(xmlConverterFactory)
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BASIC
+                    })
+                    .build()
             )
             .build()
     }
 
     @Provides
-    fun provideNewsApiService(retrofit: Retrofit) : NewsApiService {
-        return retrofit.create(NewsApiService::class.java)
+    @Named("gnewsRetrofit")
+    fun provideGNewsRetrofit() : Retrofit{
+        return Retrofit.Builder()
+            .baseUrl("https://gnews.io/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(HttpLoggingInterceptor().apply {
+                        level = HttpLoggingInterceptor.Level.BASIC
+                    })
+                    .build()
+            )
+            .build()
     }
 
     @Provides
-    fun provideNewsRepository(apiService: NewsApiService) : NewsRepository {
-        return NewsRepositoryImpl(apiService)
+    fun provideGoogleNewsApiService(
+        @Named("googleNewsRetrofit")retrofit: Retrofit
+    ) : RssApiService {
+        return retrofit.create(RssApiService::class.java)
+    }
+
+    @Provides
+    fun provideGNewsApiService(
+        @Named("gnewsRetrofit")retrofit: Retrofit
+    ) : GNewsApiService {
+        return retrofit.create(GNewsApiService::class.java)
+    }
+
+    @Provides fun provideRemote(ds: RemoteNewsDataSourceImpl): RemoteNewsDataSource = ds
+    @Provides fun provideLocal(ds: LocalNewsDataSourceImpl): LocalNewsDataSource = ds
+
+    @Provides
+    fun provideNewsRepository(remote: RemoteNewsDataSource, local : LocalNewsDataSource) : NewsRepository {
+        return NewsRepositoryImpl(remote, local)
+    }
+
+    @Provides
+    fun provideContext(app: Application): Context {
+        return app.applicationContext
     }
 }

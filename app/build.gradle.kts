@@ -6,7 +6,6 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 val localProperties = Properties().apply {
@@ -26,7 +25,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "NEWS_API_KEY", "\"${localProperties.getProperty("NEWS_API_KEY")}\"")
+        buildConfigField("String", "GNEWS_API_KEY", "\"${localProperties.getProperty("GNEWS_API_KEY")}\"")
     }
 
     buildFeatures {
@@ -53,7 +52,6 @@ android {
         compose = true
     }
 }
-
 dependencies {
 
     implementation(libs.androidx.core.ktx)
@@ -74,12 +72,24 @@ dependencies {
     implementation("androidx.compose.ui:ui:1.8.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
 
+    // DB
+    implementation("androidx.room:room-runtime:2.7.1")
+    ksp("androidx.room:room-compiler:2.7.1")
+    implementation("androidx.room:room-ktx:2.7.1")
+
+    // GoogleNewsDecoder Lib
+    implementation("com.github.Kmykhail:GoogleNewsDecoder:1.0.4")
+
     // Networking
     implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
-//    implementation("com.google.accompanist:accompanist-webview:0.32.0")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
     implementation("androidx.compose.ui:ui-viewbinding")
+    implementation("org.jsoup:jsoup:1.17.2")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Serialization
+    implementation("com.squareup.retrofit2:converter-simplexml:2.9.0")
 
     // Async
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0")
