@@ -58,7 +58,7 @@ class RemoteNewsDataSourceImpl @Inject constructor(
         return try {
             val response = rssApiService.getTopHeadlines()
             response.channel.items.mapNotNull { item ->
-                val result = decoder.decodeGoogleNewsUrl(item.link)
+                val result = decoder.decodeGoogleNewsUrl(item.link, 2000L)
                 if (result["status"] == true) {
                     println("RSSTitle-OK: ${item.title}")
                     NewsMapper.rssItemToNews(item, result["decodedUrl"] as String)
