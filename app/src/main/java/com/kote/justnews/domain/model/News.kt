@@ -1,5 +1,6 @@
 package com.kote.justnews.domain.model
 
+import java.time.LocalDateTime
 import java.util.Date
 
 data class News(
@@ -9,5 +10,5 @@ data class News(
     val link: String,
     val sourceUrl: String,
     val sourceName: String,
-    val publishedAt: Date
+    val publishedAt: LocalDateTime
 )

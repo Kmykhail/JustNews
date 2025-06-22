@@ -12,6 +12,6 @@ data class NewsCache(
     val description: String,
     val sourceUrl: String?,
     val sourceName: String?,
-    val publishedAt: String,
+    val publishedAt: Long,
     val cachedAt: Long
 )

@@ -1,15 +1,17 @@
 package com.kote.justnews.data.mapper
 
-import android.util.Log
 import com.kote.justnews.data.local.NewsCache
 import com.kote.justnews.data.remote.GNewsArticle
 import com.kote.justnews.data.remote.RssItem
 import com.kote.justnews.domain.model.News
 import org.jsoup.Jsoup
-import java.text.ParseException
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import kotlin.String
+import java.time.Instant
 
 object NewsMapper {
     fun rssItemToNews(rssItem: RssItem, decodedLink: String): News {
@@ -20,7 +22,7 @@ object NewsMapper {
             imageUrl = "",
             sourceUrl = rssItem.source?.url ?: "",
             sourceName = rssItem.source?.name ?: "" ,
-            publishedAt = parseRssDate(rssItem.pubDate)
+            publishedAt = parseRssDateTime(rssItem.pubDate)
         )
     }
 
@@ -32,7 +34,7 @@ object NewsMapper {
             imageUrl = gnewsArticle.image,
             sourceUrl = gnewsArticle.source.url,
             sourceName = gnewsArticle.source.name,
-            publishedAt = parseGNewsDate(gnewsArticle.publishedAt)
+            publishedAt = parseGNewsDateTime(gnewsArticle.publishedAt)
         )
     }
 
@@ -44,29 +46,34 @@ object NewsMapper {
             imageUrl = newsCache.imageUrl?: "",
             sourceUrl = newsCache.sourceUrl ?: "",
             sourceName = newsCache.sourceName ?: "" ,
-            publishedAt = parseRssDate(newsCache.publishedAt)
+            publishedAt = Instant.ofEpochMilli(newsCache.publishedAt).atZone(ZoneId.systemDefault()).toLocalDateTime()
+        )
+    }
+
+    fun newsToCacheNews(news: News, now: Long) : NewsCache {
+        return NewsCache(
+            title = news.title,
+            link = news.link,
+            imageUrl = news.imageUrl,
+            description = news.description,
+            sourceUrl = news.sourceUrl,
+            sourceName = news.sourceName,
+            publishedAt = news.publishedAt.toInstant(ZoneOffset.UTC).toEpochMilli(),
+            cachedAt = now
         )
     }
 
     // Sun, 15 Jun 2025 13:23:00 GMT
-    private fun parseRssDate(dateString: String): Date {
-        val format = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
-        return try {
-            format.parse(dateString) ?: Date()
-        } catch (e: ParseException) {
-            Log.w("RssDateError", e.toString())
-            Date()
-        }
+    private fun parseRssDateTime(dateString: String): LocalDateTime {
+        return ZonedDateTime
+            .parse(dateString, DateTimeFormatter.RFC_1123_DATE_TIME)
+            .toLocalDateTime()
     }
 
-    // 2025-06-15T11:59:00
-    private fun parseGNewsDate(dateString: String) : Date {
-        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-        return try {
-            format.parse(dateString) ?: Date()
-        } catch (e: ParseException) {
-            Log.w("GNewsDateError", e.toString())
-            Date()
-        }
+    // 2025-06-15T11:59:00Z
+    private fun parseGNewsDateTime(dateString: String) : LocalDateTime {
+        return Instant.parse(dateString)
+            .atOffset(ZoneOffset.UTC)
+            .toLocalDateTime()
     }
 }

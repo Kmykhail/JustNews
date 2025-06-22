@@ -8,11 +8,8 @@ import kotlinx.coroutines.launch
 import com.kote.justnews.data.model.Result
 import com.kote.justnews.domain.model.News
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
-import org.jsoup.Jsoup
 import javax.inject.Inject
 
 @HiltViewModel

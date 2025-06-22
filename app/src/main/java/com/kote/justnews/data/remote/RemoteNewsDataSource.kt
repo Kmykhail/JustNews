@@ -35,7 +35,7 @@ class RemoteNewsDataSourceImpl @Inject constructor(
             }
         }
 
-        send(gnews)
+//        send(gnews)
 
         val rssNews = try {
             fetchRssWithLimit()
@@ -48,14 +48,14 @@ class RemoteNewsDataSourceImpl @Inject constructor(
         send(gnews + rssNews)
     }
 
-    private suspend fun fetchRssWithLimit(): List<News> = rssMutex.withLock {
-        val currentTime = System.currentTimeMillis()
-        val timeSinceLastFetch = currentTime - lastRssFetchTime
-        val requiredDelay = maxOf(0, 2000L - timeSinceLastFetch)
+    private suspend fun fetchRssWithLimit(): List<News> {
+//        val currentTime = System.currentTimeMillis()
+//        val timeSinceLastFetch = currentTime - lastRssFetchTime
+//        val requiredDelay = maxOf(0, 2000L - timeSinceLastFetch)
+//
+//        delay(requiredDelay)
 
-        delay(requiredDelay)
-
-        try {
+        return try {
             val response = rssApiService.getTopHeadlines()
             response.channel.items.mapNotNull { item ->
                 val result = decoder.decodeGoogleNewsUrl(item.link)
