@@ -1,6 +1,5 @@
 package com.kote.justnews.ui.screens
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.kote.justnews.domain.repository.NewsRepository
